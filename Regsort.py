@@ -33,6 +33,17 @@ def sort_and_combine_entries(parsed_entries):
             if len(entry_parts) == 2:
                 current_dict[entry_parts[0]] = entry_parts[1]
 
+    # Remove empty dictionaries
+    def remove_empty_dicts(d):
+        keys_to_delete = [key for key, value in d.items() if isinstance(value, dict) and not value]
+        for key in keys_to_delete:
+            del d[key]
+        for value in d.values():
+            if isinstance(value, dict):
+                remove_empty_dicts(value)
+    
+    remove_empty_dicts(sorted_combined_entries)
+
     return sorted_combined_entries
 
 def write_registry_file(sorted_entries, output_file):
@@ -42,12 +53,12 @@ def write_registry_file(sorted_entries, output_file):
 def write_entries(file, entries, depth=0):
     for key, value in entries.items():
         if isinstance(value, dict):
-            file.write(f"[{key}]\n")
-            write_entries(file, value, depth + 1)
+            if value:  # Only write non-empty sections
+                file.write(f"[{key}]\n")
+                write_entries(file, value, depth + 1)
+                file.write("\n")  # Add a new line after each section
         else:
             file.write(f"{key}={value}\n")
-    if depth > 0:
-        file.write("\n")
 
 # Example usage
 file_path = 'C:\\Users\\Gorstak\\Documents\\GSecurity.reg'
